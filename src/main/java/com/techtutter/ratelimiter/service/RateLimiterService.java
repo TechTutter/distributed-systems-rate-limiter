@@ -35,6 +35,8 @@ public class RateLimiterService {
         long currentTimeMillis = Instant.now().toEpochMilli();
         long windowSizeMillis = windowInSeconds * 1000L;
 
+        // Unique element in the sorted set (timestamp alone is not enough for elements
+        // of the same millisecond fraction)
         String uniqueElement = currentTimeMillis + "-" + UUID.randomUUID().toString();
 
         Long result = redisTemplate.execute(
@@ -46,5 +48,16 @@ public class RateLimiterService {
                 uniqueElement);
 
         return result != null && result == 1L;
+    }
+
+    /**
+     * Calculates an approximate remaining request pool based on current state.
+     * Since checking is inherently separate from the execution transaction,
+     * this is an approximation used solely for 'X-RateLimit-Remaining' Header
+     * output purposes.
+     */
+    public long getApproximateRemaining(String key, int limit) {
+        Long currentRequests = redisTemplate.opsForZSet().zCard(key);
+        return Math.max(0, limit - (currentRequests != null ? currentRequests : 0));
     }
 }
