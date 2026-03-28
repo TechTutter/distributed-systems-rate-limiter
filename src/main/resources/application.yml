@@ -6,3 +6,8 @@ management:
   metrics:
     tags:
       application: distributed-rate-limiter
+
+spring:
+  data:
+    redis:
+      timeout: 200ms # Do not block threads if Redis hangs.
