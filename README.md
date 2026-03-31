@@ -19,18 +19,35 @@ Micrometer is integrated to track metrics independently of the application layer
 - `rate_limit_redis_errors_total`
 - `rate_limit_redis_latency_seconds_max` (measuring latency impact of Redis calls on the HTTP request lifecycle)
 
+Access Grafana at `http://localhost:3000` (admin/admin) to view the pre-configured "Distributed Rate Limiter Dashboard".
+
 ## Testing and Benchmarking
 
 Integration tests with Testcontainers for a real Redis 7 instance.
 
 ### Load Test Results
-A `k6` load test benchmark is included. Running on a standard local environment (i.e., Apple Silicon M4, 16GB RAM), it establishes a throughput of ~100,000 Requests Per Minute (RPM) and simulates a 3x distributed traffic burst. 
+A `k6` load test benchmark is included. Running on a standard local environment (Apple Silicon M4, 16GB RAM), it establishes a throughput of ~212,000 Requests Per Minute (RPM) and simulates a 2.5x distributed traffic burst. 
 
-*   **Baseline Throughput**: ~100k RPM (1,600 RPS)
-*   **Burst Throughput**: ~300k RPM (4,800 RPS)
-*   **P95 HTTP Request Duration**: < 5ms
-*   **Redis Lua Execution Overhead**: < 3ms
+*   **Baseline Throughput**: ~150k RPM (2,500 RPS)
+*   **Burst Throughput**: ~375k RPM (6,250 RPS)
+*   **P99 HTTP Request Duration**: < 7ms
+*   **Redis Lua Execution Overhead**: < 2ms
 *   **Reliability**: 100% block rate on exhausted quotas with 0 unauthorized bypasses.
+
+#### Precise Load Test Run Data (1-Minute Runtime)
+- **Total Requests**: 212,212
+- **Average Request Rate**: 3,537 req/s (212,197 req/min)
+- **HTTP Request Duration**:
+  - Average: 1.62ms
+  - P90: 2.46ms
+  - P95: 3.15ms
+  - P99: 6.94ms
+- **Checks Passed**: 100% (all responses 200 or 429)
+- **Failed Requests (429s)**: 35.02% (74,320 out of 212,212)
+- **Dropped Iterations**: 291 (negligible)
+- **Network**: 37 MB received, 29 MB sent
+
+![Throughput Plot](./graphana_plot.png)
 
 ## Setup Instructions
 
